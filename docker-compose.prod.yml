@@ -1,0 +1,97 @@
+# Развертывание на сервере: база, два API и обработчик синхронизации.
+# Консоль и виджет — статика, ее отдает nginx хоста из
+# /home/deploy/apps/reviews/{console,widget}, поэтому контейнеров под них нет.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: reviews-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    # Порт наружу не публикуется: база нужна только соседнему контейнеру.
+    # На хосте уже слушает своя mongod, и занимать 27017 второй раз нельзя.
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  console-api:
+    build:
+      context: .
+      target: console-api
+    image: reviews-console-api:latest
+    container_name: reviews-console-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      CONSOLE_API_PORT: ${CONSOLE_API_PORT}
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/reviews?authSource=admin
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      WIDGET_SCRIPT_URL: ${WIDGET_SCRIPT_URL}
+      AGGREGATOR_BASE_URL: ${AGGREGATOR_BASE_URL}
+    # Публикация только на локальный интерфейс. Без явного 127.0.0.1 Docker
+    # открыл бы порт на всех адресах в обход правил ufw. Порт снаружи и внутри
+    # один: контейнер изолирован, и разводить их незачем.
+    ports:
+      - '127.0.0.1:${CONSOLE_API_PORT}:${CONSOLE_API_PORT}'
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  widget-api:
+    build:
+      context: .
+      target: widget-api
+    image: reviews-widget-api:latest
+    container_name: reviews-widget-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      WIDGET_API_PORT: ${WIDGET_API_PORT}
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/reviews?authSource=admin
+    ports:
+      - '127.0.0.1:${WIDGET_API_PORT}:${WIDGET_API_PORT}'
+    logging: *logging
+
+  sync-worker:
+    build:
+      context: .
+      target: sync-worker
+    image: reviews-sync-worker:latest
+    container_name: reviews-sync-worker
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    # Порт не публикуется: обработчик не принимает запросов.
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/reviews?authSource=admin
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      AGGREGATOR_BASE_URL: ${AGGREGATOR_BASE_URL}
+    logging: *logging
+
+volumes:
+  mongo-data:

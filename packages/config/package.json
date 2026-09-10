@@ -1,0 +1,22 @@
+{
+  "name": "@reviews/config",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "reflect-metadata": "^0.2.2",
+    "vitest": "^4.1.11"
+  }
+}

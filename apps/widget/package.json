@@ -1,0 +1,19 @@
+{
+  "name": "@reviews/widget",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lit/context": "^1.1.6",
+    "@lit/task": "^1.0.3",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "vite": "^8.0.16"
+  }
+}

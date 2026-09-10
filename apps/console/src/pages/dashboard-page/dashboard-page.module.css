@@ -1,0 +1,7 @@
+.content {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 840px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}

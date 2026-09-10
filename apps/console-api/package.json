@@ -1,0 +1,37 @@
+{
+  "name": "@reviews/console-api",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "nest build -p tsconfig.build.json",
+    "start": "nest start",
+    "start:prod": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "nest start --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.26",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.26",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/mongoose": "^11.0.4",
+    "@nestjs/platform-express": "^11.1.26",
+    "@nestjs/throttler": "^6.5.0",
+    "@node-rs/argon2": "^2.0.2",
+    "@reviews/aggregator": "workspace:*",
+    "@reviews/config": "workspace:*",
+    "@reviews/database": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "mongoose": "^9.7.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.23",
+    "@reviews/testing": "workspace:*",
+    "@types/express": "^5.0.6",
+    "vitest": "^4.1.11"
+  }
+}

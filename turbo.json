@@ -1,0 +1,34 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "stream",
+  "globalEnv": ["NODE_ENV"],
+  "globalDependencies": [".env*"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "index.html",
+        "tsconfig*.json",
+        "package.json",
+        "vite.config.ts",
+        "nest-cli.json"
+      ],
+      "outputs": ["dist/**"],
+      "env": ["VITE_CONSOLE_API_URL", "VITE_WIDGET_API_URL"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json", "package.json"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json", "package.json", "vitest.config.ts", "vitest.setup.ts"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

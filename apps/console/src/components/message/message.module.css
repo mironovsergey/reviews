@@ -1,0 +1,25 @@
+.message {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.error {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.warning {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.info {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.success {
+  padding: 0;
+  color: var(--color-success);
+}

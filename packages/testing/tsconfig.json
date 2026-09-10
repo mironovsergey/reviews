@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+    "lib": ["ESNext"],
+    "types": ["node"],
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Поля классов заполняет не конструктор, а ValidationPipe и Mongoose.
+    "strictPropertyInitialization": false,
+
+    "noEmit": true
+  },
+  "include": ["src"]
+}

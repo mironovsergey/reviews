@@ -1,0 +1,20 @@
+{
+  "name": "@reviews/aggregator",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.26"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}

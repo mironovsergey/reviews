@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+    "lib": ["ESNext"],
+    "types": ["node"],
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Поля классов-схем и классов DTO заполняет не конструктор, а Mongoose и
+    // ValidationPipe, поэтому требование инициализаторов здесь неприменимо.
+    "strictPropertyInitialization": false,
+
+    "declaration": false,
+    "sourceMap": true,
+    "removeComments": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "test"]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@reviews/database",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.26",
+    "@nestjs/mongoose": "^11.0.4",
+    "mongoose": "^9.7.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}

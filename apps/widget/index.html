@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Виджет отзывов - песочница</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&display=swap"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f4f3f1;
+        font-family: 'Nunito Sans', sans-serif;
+      }
+
+      .page {
+        max-width: 1360px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!--
+        Ключ берется из консоли управления; домен localhost нужно добавить
+        там же в список разрешенных. Адрес API приходит из VITE_WIDGET_API_URL
+        в общем файле .env и указывает на другой порт: виджет обязан ходить
+        на чужой источник, иначе браузер не отправит заголовок Origin и API
+        отклонит запрос.
+      -->
+      <reviews-widget api-key=""></reviews-widget>
+    </div>
+    <script type="module" src="/src/reviews-widget.ts"></script>
+  </body>
+</html>
