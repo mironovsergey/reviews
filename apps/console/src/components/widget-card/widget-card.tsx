@@ -12,13 +12,15 @@ const COPIED_RESET_MS = 2000;
 /** FormData.get() возвращает в том числе File, поэтому значение проверяется схемой. */
 const DomainFieldSchema = z.string().trim().min(1);
 
-/** Код для вставки на сайт и список разрешенных доменов. */
+/**
+ * Код для вставки на сайт и список разрешенных доменов.
+ *
+ * Список сохраняется сразу при добавлении или удалении домена.
+ */
 export const WidgetCard: FC = () => {
   const widget = useQuery(widgetQuery());
   const saveDomains = useSaveDomainsMutation();
 
-  /** Черновик списка; передается на сервер по кнопке «Сохранить». */
-  const [draft, setDraft] = useState<string[] | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
 
@@ -52,8 +54,8 @@ export const WidgetCard: FC = () => {
     );
   }
 
-  const domains = draft ?? widget.data.allowedDomains;
-  const hasChanges = draft !== null;
+  // До ответа сервера здесь уже выведен измененный список.
+  const domains = widget.data.allowedDomains;
 
   const handleCopy = (): void => {
     navigator.clipboard
@@ -77,23 +79,12 @@ export const WidgetCard: FC = () => {
       return;
     }
 
-    setDraft([...domains, parsed.data]);
-    saveDomains.reset();
+    saveDomains.mutate([...domains, parsed.data]);
     form.reset();
   };
 
   const removeDomain = (domain: string): void => {
-    setDraft(domains.filter((item) => item !== domain));
-    saveDomains.reset();
-  };
-
-  const handleSave = (): void => {
-    saveDomains.mutate(domains, {
-      onSuccess: () => {
-        // Далее выводится результат нормализации, полученный от сервера.
-        setDraft(null);
-      },
-    });
+    saveDomains.mutate(domains.filter((item) => item !== domain));
   };
 
   return (
@@ -169,17 +160,10 @@ export const WidgetCard: FC = () => {
           </div>
         )}
 
-        <div className={styles.actions}>
-          <button
-            className={styles.button}
-            type="button"
-            disabled={!hasChanges || saveDomains.isPending}
-            onClick={handleSave}
-          >
-            {saveDomains.isPending ? 'Сохраняем…' : 'Сохранить домены'}
-          </button>
-          {saveDomains.isSuccess && !hasChanges && <Message tone="success">Сохранено</Message>}
-        </div>
+        <p className={styles.status} role="status">
+          {saveDomains.isPending && 'Сохраняем…'}
+          {saveDomains.isSuccess && 'Сохранено'}
+        </p>
       </div>
     </section>
   );

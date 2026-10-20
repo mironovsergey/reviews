@@ -86,11 +86,11 @@
   outline: none;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
+/* Высота задана, чтобы появление подписи не сдвигало карточку. */
+.status {
+  min-height: 1.5em;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .button {
@@ -104,11 +104,6 @@
 
 .button:hover:not(:disabled) {
   background: var(--color-primary-hover);
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .buttonSecondary {
