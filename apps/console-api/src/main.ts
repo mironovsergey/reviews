@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
   // браузера, поэтому источник запроса отражается.
   app.enableCors({
     origin: true,
-    methods: ['GET', 'POST', 'PUT'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 

@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConnectionModule } from './connection/connection.module';
 import { ConsoleApiEnv } from './env';
 import { HealthModule } from './health/health.module';
+import { ReviewFilterModule } from './review-filter/review-filter.module';
 import { DEFAULT_THROTTLE } from './throttle';
 import { WidgetModule } from './widget/widget.module';
 
@@ -39,6 +40,7 @@ import { WidgetModule } from './widget/widget.module';
     HealthModule,
     AuthModule,
     WidgetModule,
+    ReviewFilterModule,
     ConnectionModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
