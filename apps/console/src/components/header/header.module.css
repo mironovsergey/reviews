@@ -14,6 +14,32 @@
   font-weight: 700;
 }
 
+.nav {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.navLink {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.navLinkActive:hover {
+  color: var(--color-primary);
+}
+
 .user {
   display: flex;
   align-items: center;
