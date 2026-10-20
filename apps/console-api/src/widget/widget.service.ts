@@ -3,8 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import type { ConsoleApiEnv } from '../env';
+import type { TargetSnippetResponseDto } from './dto/target-snippet-response.dto';
 import type { WidgetResponseDto } from './dto/widget-response.dto';
-import { Workspace } from '@reviews/database';
+import { ReviewTarget, Workspace } from '@reviews/database';
 
 const HOSTNAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/u;
 
@@ -27,11 +28,12 @@ const toHostname = (raw: string): string | null => {
   }
 };
 
-/** Настройки кабинета: ключ виджета и разрешенные домены. */
+/** Настройки кабинета: ключ виджета, разрешенные домены и код вставки. */
 @Injectable()
 export class WidgetService {
   constructor(
     @InjectModel(Workspace.name) private readonly workspaceModel: Model<Workspace>,
+    @InjectModel(ReviewTarget.name) private readonly targetModel: Model<ReviewTarget>,
     private readonly config: ConfigService<ConsoleApiEnv, true>,
   ) {}
 
@@ -44,6 +46,33 @@ export class WidgetService {
     }
 
     return this.toResponse(workspace.apiKey, workspace.allowedDomains);
+  }
+
+  /**
+   * Код вставки для страницы одной клиники или одного врача.
+   *
+   * Цель отбирается вместе с кабинетом. Код с идентификатором чужой цели
+   * вывел бы на сайте пустую ленту, поэтому такой запрос отклоняется так же,
+   * как запрос несуществующей цели.
+   */
+  async getTargetSnippet(
+    workspaceId: Types.ObjectId,
+    targetId: string,
+  ): Promise<TargetSnippetResponseDto> {
+    const [workspace, target] = await Promise.all([
+      this.workspaceModel.findById(workspaceId),
+      this.targetModel.exists({ _id: new Types.ObjectId(targetId), workspaceId }),
+    ]);
+
+    if (workspace === null) {
+      throw new NotFoundException('Кабинет не найден');
+    }
+
+    if (target === null) {
+      throw new NotFoundException('Клиника или врач не найдены');
+    }
+
+    return { targetId, snippet: this.buildSnippet(workspace.apiKey, targetId) };
   }
 
   /**
@@ -92,14 +121,25 @@ export class WidgetService {
     return [...domains];
   }
 
-  /** Код вставки: элемент виджета и регистрирующий его модуль. */
   private toResponse(apiKey: string, allowedDomains: string[]): WidgetResponseDto {
-    // Адрес API в коде вставки не требуется: он подставлен в скрипт при сборке.
-    const snippet = [
-      `<reviews-widget api-key="${apiKey}"></reviews-widget>`,
+    return { apiKey, allowedDomains, snippet: this.buildSnippet(apiKey) };
+  }
+
+  /**
+   * Код вставки: элемент виджета и регистрирующий его модуль.
+   *
+   * Без цели виджет выводит все отзывы кабинета с фильтром, с целью только
+   * ее отзывы и без фильтра. Адрес API в коде не требуется: он подставлен в
+   * скрипт при сборке. Значения атрибутов экранирования не требуют: ключ
+   * состоит из символов base64url, идентификатор цели из шестнадцатеричных
+   * цифр.
+   */
+  private buildSnippet(apiKey: string, targetId?: string): string {
+    const targetAttribute = targetId === undefined ? '' : ` target-id="${targetId}"`;
+
+    return [
+      `<reviews-widget api-key="${apiKey}"${targetAttribute}></reviews-widget>`,
       `<script type="module" src="${this.config.get('WIDGET_SCRIPT_URL', { infer: true })}"></script>`,
     ].join('\n');
-
-    return { apiKey, allowedDomains, snippet };
   }
 }

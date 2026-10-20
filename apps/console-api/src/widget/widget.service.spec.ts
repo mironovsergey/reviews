@@ -1,12 +1,24 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Model, Types } from 'mongoose';
+import { model, Model, Types } from 'mongoose';
 import { describe, expect, it, vi } from 'vitest';
 import type { ConfigService } from '@nestjs/config';
 import type { ConsoleApiEnv } from '../env';
-import type { Workspace, WorkspaceDocument } from '@reviews/database';
+import {
+  ReviewTarget,
+  ReviewTargetSchema,
+  type Workspace,
+  type WorkspaceDocument,
+} from '@reviews/database';
 import { WidgetService } from './widget.service';
 
 const WORKSPACE_ID = new Types.ObjectId();
+
+/**
+ * Модель целей требуется конструктору службы. Проверки этого файла к ней не
+ * обращаются: код вставки для отдельной цели проверяется в
+ * target-snippet.spec.ts.
+ */
+const targetModel = model(ReviewTarget.name, ReviewTargetSchema);
 
 const workspace = (allowedDomains: string[] = []): WorkspaceDocument =>
   ({
@@ -34,6 +46,7 @@ const build = (options: { found?: WorkspaceDocument | null; scriptUrl?: string }
   return {
     service: new WidgetService(
       workspaceModel as unknown as Model<Workspace>,
+      targetModel,
       appConfig(options.scriptUrl ?? '/reviews-widget.js'),
     ),
     workspaceModel,
