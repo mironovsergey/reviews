@@ -10,6 +10,7 @@ import { TargetSnippetDialog } from '../../components/target-snippet-dialog/targ
 import { TargetsTable } from '../../components/targets-table/targets-table';
 import { plural } from '../../utils/format';
 import { matchesNameQuery } from '../../utils/name-search';
+import formStyles from '../../styles/form.module.css';
 import cardStyles from '../../styles/card.module.css';
 import styles from './targets-page.module.css';
 
@@ -92,7 +93,7 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
     const subject = failed === undefined ? '' : ` «${failed.name}»`;
 
     return (
-      <div className={styles.notice}>
+      <div className={formStyles.notice}>
         <Message>
           Не удалось изменить показ{subject}: {update.error.message}
         </Message>

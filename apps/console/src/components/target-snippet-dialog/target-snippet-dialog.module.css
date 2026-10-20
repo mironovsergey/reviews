@@ -9,10 +9,6 @@
   color: var(--color-text-secondary);
 }
 
-.notice {
-  margin-bottom: var(--space-4);
-}
-
 .footnote {
   margin-top: var(--space-5);
   font-size: var(--font-size-sm);

@@ -7,6 +7,7 @@ import type { ConnectionInfo } from '../../schemas/connection';
 import { formatDate, formatDateTime, plural } from '../../utils/format';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import formStyles from '../../styles/form.module.css';
 import cardStyles from '../../styles/card.module.css';
 import styles from './connection-card.module.css';
 
@@ -80,7 +81,7 @@ export const ConnectionCard: FC = () => {
       </p>
 
       {data.status === 'needs_reauth' && (
-        <div className={styles.notice}>
+        <div className={formStyles.notice}>
           <Message tone="warning">
             Токен MyReviews больше не действует. Подключите аккаунт заново, иначе отзывы перестанут
             обновляться.
@@ -89,13 +90,13 @@ export const ConnectionCard: FC = () => {
       )}
 
       {data.status === 'error' && data.lastError !== null && (
-        <div className={styles.notice}>
+        <div className={formStyles.notice}>
           <Message>Последняя синхронизация не удалась: {data.lastError}</Message>
         </div>
       )}
 
       {running && (
-        <div className={styles.notice}>
+        <div className={formStyles.notice}>
           <Message tone="info">Идет синхронизация, это займет около минуты…</Message>
         </div>
       )}
@@ -137,13 +138,13 @@ export const ConnectionCard: FC = () => {
           </div>
 
           {sync.isError && (
-            <div className={styles.notice}>
+            <div className={formStyles.notice}>
               <Message>{sync.error.message}</Message>
             </div>
           )}
 
           <button
-            className={styles.button}
+            className={formStyles.button}
             type="button"
             disabled={running || sync.isPending}
             onClick={() => {
@@ -157,14 +158,14 @@ export const ConnectionCard: FC = () => {
 
       {showForm && (
         <form onSubmit={handleConnect} noValidate>
-          <label className={styles.field}>
-            <span className={styles.label}>Электронная почта в MyReviews</span>
-            <input className={styles.input} type="email" name="email" maxLength={254} />
+          <label className={formStyles.field}>
+            <span className={formStyles.label}>Электронная почта в MyReviews</span>
+            <input className={formStyles.input} type="email" name="email" maxLength={254} />
           </label>
 
-          <label className={styles.field}>
-            <span className={styles.label}>Пароль от MyReviews</span>
-            <input className={styles.input} type="password" name="password" maxLength={256} />
+          <label className={formStyles.field}>
+            <span className={formStyles.label}>Пароль от MyReviews</span>
+            <input className={formStyles.input} type="password" name="password" maxLength={256} />
           </label>
 
           <p className={styles.formHint}>
@@ -173,18 +174,18 @@ export const ConnectionCard: FC = () => {
           </p>
 
           {(formError !== null || connect.isError) && (
-            <div className={styles.notice}>
+            <div className={formStyles.notice}>
               <Message>{formError ?? connect.error?.message}</Message>
             </div>
           )}
 
-          <div className={styles.actions}>
-            <button className={styles.button} type="submit" disabled={connect.isPending}>
+          <div className={formStyles.actions}>
+            <button className={formStyles.button} type="submit" disabled={connect.isPending}>
               {connect.isPending ? 'Подключаем…' : 'Подключить'}
             </button>
             {reconnecting && (
               <button
-                className={`${styles.button} ${styles.buttonSecondary}`}
+                className={`${formStyles.button} ${formStyles.buttonSecondary}`}
                 type="button"
                 onClick={() => {
                   setReconnecting(false);

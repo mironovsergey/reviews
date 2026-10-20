@@ -6,6 +6,7 @@ import { useSaveDomainsMutation, widgetQuery } from '../../queries/widget';
 import { CopyableCode } from '../copyable-code/copyable-code';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import formStyles from '../../styles/form.module.css';
 import cardStyles from '../../styles/card.module.css';
 import styles from './widget-card.module.css';
 
@@ -85,7 +86,7 @@ export const WidgetCard: FC = () => {
         <h3 className={styles.sectionTitle}>Разрешенные домены</h3>
 
         {domains.length === 0 && (
-          <div className={styles.notice}>
+          <div className={formStyles.notice}>
             <Message tone="warning">
               Пока не указан ни один домен, виджет не будет работать: запросы с сайта получат отказ.
               Добавьте домен, на котором стоит код.
@@ -119,13 +120,13 @@ export const WidgetCard: FC = () => {
             aria-label="Новый домен"
             maxLength={253}
           />
-          <button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">
+          <button className={`${formStyles.button} ${formStyles.buttonSecondary}`} type="submit">
             Добавить
           </button>
         </form>
 
         {saveDomains.isError && (
-          <div className={styles.notice}>
+          <div className={formStyles.notice}>
             <Message>{saveDomains.error.message}</Message>
           </div>
         )}

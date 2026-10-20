@@ -6,6 +6,7 @@ import { CopyableCode } from '../copyable-code/copyable-code';
 import { Dialog } from '../dialog/dialog';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import formStyles from '../../styles/form.module.css';
 import styles from './target-snippet-dialog.module.css';
 
 interface DialogTexts {
@@ -66,7 +67,7 @@ const SnippetContent: FC<SnippetContentProps> = ({ target }) => {
       <p className={styles.hint}>{texts.hint}</p>
 
       {!target.isActive && (
-        <div className={styles.notice}>
+        <div className={formStyles.notice}>
           <Message tone="warning">{texts.hidden}</Message>
         </div>
       )}
