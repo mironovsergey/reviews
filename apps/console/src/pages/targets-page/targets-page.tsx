@@ -10,6 +10,7 @@ import { TargetSnippetDialog } from '../../components/target-snippet-dialog/targ
 import { TargetsTable } from '../../components/targets-table/targets-table';
 import { plural } from '../../utils/format';
 import { matchesNameQuery } from '../../utils/name-search';
+import cardStyles from '../../styles/card.module.css';
 import styles from './targets-page.module.css';
 
 interface PageTexts {
@@ -166,7 +167,7 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
         </p>
       </div>
 
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         {targets.isPending && <Loader text={texts.loading} />}
         {targets.isError && <Message>{targets.error.message}</Message>}
         {targets.isSuccess && renderList(targets.data)}

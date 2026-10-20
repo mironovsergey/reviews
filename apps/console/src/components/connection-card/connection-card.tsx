@@ -7,6 +7,7 @@ import type { ConnectionInfo } from '../../schemas/connection';
 import { formatDate, formatDateTime, plural } from '../../utils/format';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import cardStyles from '../../styles/card.module.css';
 import styles from './connection-card.module.css';
 
 const ConnectSchema = z.object({
@@ -25,7 +26,7 @@ export const ConnectionCard: FC = () => {
 
   if (connection.isPending) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Loader text="Загружаем состояние подключения…" />
       </section>
     );
@@ -33,7 +34,7 @@ export const ConnectionCard: FC = () => {
 
   if (connection.isError) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Message>{connection.error.message}</Message>
       </section>
     );
@@ -67,9 +68,9 @@ export const ConnectionCard: FC = () => {
   };
 
   return (
-    <section className={styles.card}>
-      <h2 className={styles.title}>Аккаунт MyReviews</h2>
-      <p className={styles.hint}>
+    <section className={cardStyles.card}>
+      <h2 className={cardStyles.title}>Аккаунт MyReviews</h2>
+      <p className={cardStyles.hint}>
         {data.connected
           ? `Отзывы, клиники и врачи загружаются автоматически дважды в сутки. Всего ${plural(
               data.counts.reviews,

@@ -6,6 +6,7 @@ import { useCopyToClipboard } from '../../hooks/use-copy-to-clipboard';
 import { useSaveDomainsMutation, widgetQuery } from '../../queries/widget';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import cardStyles from '../../styles/card.module.css';
 import styles from './widget-card.module.css';
 
 /** FormData.get() возвращает в том числе File, поэтому значение проверяется схемой. */
@@ -24,7 +25,7 @@ export const WidgetCard: FC = () => {
 
   if (widget.isPending) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Loader text="Загружаем код виджета…" />
       </section>
     );
@@ -32,7 +33,7 @@ export const WidgetCard: FC = () => {
 
   if (widget.isError) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Message>{widget.error.message}</Message>
       </section>
     );
@@ -60,9 +61,9 @@ export const WidgetCard: FC = () => {
   };
 
   return (
-    <section className={styles.card}>
-      <h2 className={styles.title}>Код для сайта</h2>
-      <p className={styles.hint}>
+    <section className={cardStyles.card}>
+      <h2 className={cardStyles.title}>Код для сайта</h2>
+      <p className={cardStyles.hint}>
         Вставьте этот код на страницу, где должны показываться отзывы. Ключ публичный: от чужого
         использования его защищает список доменов ниже.
       </p>
