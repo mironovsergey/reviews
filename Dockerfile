@@ -105,7 +105,7 @@ COPY --from=console-build /app/apps/console/dist /
 
 FROM build AS widget-build
 # Адрес API вшивается в бандл: в коде вставки на сайте клиента его нет.
-# Без переменной сборка падает — молча собранный виджет пошел бы за
+# Без переменной сборка падает: молча собранный виджет пошел бы за
 # отзывами на сайт клиента и не работал бы нигде.
 ARG VITE_WIDGET_API_URL
 ENV VITE_WIDGET_API_URL=${VITE_WIDGET_API_URL}
