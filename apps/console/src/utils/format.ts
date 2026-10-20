@@ -1,13 +1,16 @@
+/** Подпись вместо отсутствующей или непригодной даты. */
+const MISSING_DATE = 'нет данных';
+
 /** Дата и время в местной зоне: «4 августа 2026, 17:25». */
 export const formatDateTime = (iso: string | null): string => {
   if (iso === null) {
-    return '—';
+    return MISSING_DATE;
   }
 
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) {
-    return '—';
+    return MISSING_DATE;
   }
 
   return new Intl.DateTimeFormat('ru-RU', {
@@ -22,13 +25,13 @@ export const formatDateTime = (iso: string | null): string => {
 /** Только дата; применяется для срока действия токена. */
 export const formatDate = (iso: string | null): string => {
   if (iso === null) {
-    return '—';
+    return MISSING_DATE;
   }
 
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) {
-    return '—';
+    return MISSING_DATE;
   }
 
   return new Intl.DateTimeFormat('ru-RU', {
