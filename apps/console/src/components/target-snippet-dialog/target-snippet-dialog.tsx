@@ -1,12 +1,11 @@
 import type { FC } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCopyToClipboard } from '../../hooks/use-copy-to-clipboard';
 import { targetSnippetQuery } from '../../queries/widget';
 import type { Target, TargetKind } from '../../schemas/target';
+import { CopyableCode } from '../copyable-code/copyable-code';
 import { Dialog } from '../dialog/dialog';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
-import formStyles from '../../styles/form.module.css';
 import styles from './target-snippet-dialog.module.css';
 
 interface DialogTexts {
@@ -60,7 +59,6 @@ interface SnippetContentProps {
 const SnippetContent: FC<SnippetContentProps> = ({ target }) => {
   const texts = DIALOG_TEXTS[target.kind];
   const snippet = useQuery(targetSnippetQuery(target.id));
-  const clipboard = useCopyToClipboard();
 
   return (
     <>
@@ -75,27 +73,7 @@ const SnippetContent: FC<SnippetContentProps> = ({ target }) => {
 
       {snippet.isPending && <Loader text="Готовим код…" />}
       {snippet.isError && <Message>{snippet.error.message}</Message>}
-      {snippet.isSuccess && (
-        <>
-          <code className={styles.snippet}>{snippet.data.snippet}</code>
-
-          {clipboard.status === 'failed' && (
-            <div className={styles.notice}>
-              <Message>Браузер не дал скопировать: выделите код вручную</Message>
-            </div>
-          )}
-
-          <button
-            className={`${formStyles.button} ${formStyles.buttonSecondary}`}
-            type="button"
-            onClick={() => {
-              clipboard.copy(snippet.data.snippet);
-            }}
-          >
-            {clipboard.status === 'copied' ? 'Скопировано' : 'Скопировать код'}
-          </button>
-        </>
-      )}
+      {snippet.isSuccess && <CopyableCode code={snippet.data.snippet} />}
 
       <p className={styles.footnote}>
         Код действует на тех же доменах, что и общий код кабинета. Он привязан к записи: если запись

@@ -2,8 +2,8 @@ import type { FC, FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { z } from 'zod';
-import { useCopyToClipboard } from '../../hooks/use-copy-to-clipboard';
 import { useSaveDomainsMutation, widgetQuery } from '../../queries/widget';
+import { CopyableCode } from '../copyable-code/copyable-code';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
 import cardStyles from '../../styles/card.module.css';
@@ -20,8 +20,6 @@ const DomainFieldSchema = z.string().trim().min(1);
 export const WidgetCard: FC = () => {
   const widget = useQuery(widgetQuery());
   const saveDomains = useSaveDomainsMutation();
-
-  const clipboard = useCopyToClipboard();
 
   if (widget.isPending) {
     return (
@@ -68,23 +66,7 @@ export const WidgetCard: FC = () => {
         использования его защищает список доменов ниже.
       </p>
 
-      <code className={styles.snippet}>{widget.data.snippet}</code>
-
-      {clipboard.status === 'failed' && (
-        <div className={styles.notice}>
-          <Message>Браузер не дал скопировать: выделите код вручную</Message>
-        </div>
-      )}
-
-      <button
-        className={`${styles.button} ${styles.buttonSecondary}`}
-        type="button"
-        onClick={() => {
-          clipboard.copy(widget.data.snippet);
-        }}
-      >
-        {clipboard.status === 'copied' ? 'Скопировано' : 'Скопировать код'}
-      </button>
+      <CopyableCode code={widget.data.snippet} />
 
       <p className={styles.modes}>
         Этот код выводит все отзывы кабинета с фильтром по клиникам и врачам. Код для страницы
