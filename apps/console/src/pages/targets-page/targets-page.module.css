@@ -13,13 +13,6 @@
   color: var(--color-text-secondary);
 }
 
-.card {
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
-}
-
 .toolbar {
   display: flex;
   flex-wrap: wrap;

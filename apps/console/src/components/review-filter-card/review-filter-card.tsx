@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { reviewFilterQuery, useUpdateReviewFilterMutation } from '../../queries/review-filter';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
+import cardStyles from '../../styles/card.module.css';
 import styles from './review-filter-card.module.css';
 
 interface RatingOption {
@@ -37,7 +38,7 @@ export const ReviewFilterCard: FC = () => {
 
   if (filter.isPending) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Loader text="Загружаем условия отбора…" />
       </section>
     );
@@ -45,7 +46,7 @@ export const ReviewFilterCard: FC = () => {
 
   if (filter.isError) {
     return (
-      <section className={styles.card}>
+      <section className={cardStyles.card}>
         <Message>{filter.error.message}</Message>
       </section>
     );
@@ -64,9 +65,9 @@ export const ReviewFilterCard: FC = () => {
   };
 
   return (
-    <section className={styles.card}>
-      <h2 className={styles.title}>Отзывы в виджете</h2>
-      <p className={styles.hint}>
+    <section className={cardStyles.card}>
+      <h2 className={cardStyles.title}>Отзывы в виджете</h2>
+      <p className={cardStyles.hint}>
         Условия определяют, какие отзывы показывает виджет, и действуют сразу. Отзывы, не прошедшие
         отбор, не удаляются: ослабьте условие, и они вернутся в ленту.
       </p>
