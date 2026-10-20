@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react';
 import type { FC, FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
+import { useCopyToClipboard } from '../../hooks/use-copy-to-clipboard';
 import { useSaveDomainsMutation, widgetQuery } from '../../queries/widget';
 import { Loader } from '../loader/loader';
 import { Message } from '../message/message';
 import styles from './widget-card.module.css';
-
-const COPIED_RESET_MS = 2000;
 
 /** FormData.get() возвращает в том числе File, поэтому значение проверяется схемой. */
 const DomainFieldSchema = z.string().trim().min(1);
@@ -21,22 +19,7 @@ export const WidgetCard: FC = () => {
   const widget = useQuery(widgetQuery());
   const saveDomains = useSaveDomainsMutation();
 
-  const [copied, setCopied] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
-
-  useEffect(() => {
-    if (!copied) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCopied(false);
-    }, COPIED_RESET_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [copied]);
+  const clipboard = useCopyToClipboard();
 
   if (widget.isPending) {
     return (
@@ -56,18 +39,6 @@ export const WidgetCard: FC = () => {
 
   // До ответа сервера здесь уже выведен измененный список.
   const domains = widget.data.allowedDomains;
-
-  const handleCopy = (): void => {
-    navigator.clipboard
-      .writeText(widget.data.snippet)
-      .then(() => {
-        setCopied(true);
-        setCopyFailed(false);
-      })
-      .catch(() => {
-        setCopyFailed(true);
-      });
-  };
 
   const handleAdd = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -97,7 +68,7 @@ export const WidgetCard: FC = () => {
 
       <code className={styles.snippet}>{widget.data.snippet}</code>
 
-      {copyFailed && (
+      {clipboard.status === 'failed' && (
         <div className={styles.notice}>
           <Message>Браузер не дал скопировать — выделите код вручную</Message>
         </div>
@@ -106,9 +77,11 @@ export const WidgetCard: FC = () => {
       <button
         className={`${styles.button} ${styles.buttonSecondary}`}
         type="button"
-        onClick={handleCopy}
+        onClick={() => {
+          clipboard.copy(widget.data.snippet);
+        }}
       >
-        {copied ? 'Скопировано' : 'Скопировать код'}
+        {clipboard.status === 'copied' ? 'Скопировано' : 'Скопировать код'}
       </button>
 
       <div className={styles.section}>
