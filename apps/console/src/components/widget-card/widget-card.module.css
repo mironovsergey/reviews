@@ -32,6 +32,21 @@
   margin-bottom: var(--space-4);
 }
 
+.modes {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.link:hover {
+  text-decoration: none;
+}
+
 .section {
   margin-top: var(--space-8);
 }

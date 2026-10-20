@@ -11,3 +11,10 @@ export const WidgetInfoSchema = z.object({
 });
 
 export type WidgetInfo = z.infer<typeof WidgetInfoSchema>;
+
+/** Код вставки для страницы одной клиники или одного врача. */
+export const TargetSnippetSchema = z.object({
+  targetId: z.string(),
+  /** Готовый к вставке код виджета с атрибутом target-id. */
+  snippet: z.string(),
+});
