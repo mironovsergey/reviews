@@ -1,5 +1,6 @@
 import type { FC, FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router';
 import { z } from 'zod';
 import { useCopyToClipboard } from '../../hooks/use-copy-to-clipboard';
 import { useSaveDomainsMutation, widgetQuery } from '../../queries/widget';
@@ -83,6 +84,19 @@ export const WidgetCard: FC = () => {
       >
         {clipboard.status === 'copied' ? 'Скопировано' : 'Скопировать код'}
       </button>
+
+      <p className={styles.modes}>
+        Этот код выводит все отзывы кабинета с фильтром по клиникам и врачам. Код для страницы
+        отдельной клиники или врача выдается в разделах{' '}
+        <Link className={styles.link} to="/clinics">
+          «Клиники»
+        </Link>{' '}
+        и{' '}
+        <Link className={styles.link} to="/doctors">
+          «Врачи»
+        </Link>
+        .
+      </p>
 
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Разрешенные домены</h3>

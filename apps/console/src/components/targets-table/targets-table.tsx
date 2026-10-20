@@ -10,6 +10,8 @@ interface TargetsTableProps {
   label: string;
   /** Включение или отключение вывода цели в виджете. */
   onToggle: (target: Target, isActive: boolean) => void;
+  /** Показ кода вставки для страницы цели. */
+  onShowSnippet: (target: Target) => void;
 }
 
 /**
@@ -19,7 +21,13 @@ interface TargetsTableProps {
  * таблица прокручивается по горизонтали внутри своей области. Область
  * получает фокус, иначе прокрутить ее с клавиатуры нельзя.
  */
-export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label, onToggle }) => {
+export const TargetsTable: FC<TargetsTableProps> = ({
+  kind,
+  targets,
+  label,
+  onToggle,
+  onShowSnippet,
+}) => {
   const isDoctor = kind === 'doctor';
 
   return (
@@ -40,6 +48,9 @@ export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label, onTo
             </th>
             <th className={`${styles.cell} ${styles.cellHead}`} scope="col">
               В виджете
+            </th>
+            <th className={`${styles.cell} ${styles.cellHead}`} scope="col">
+              Код вставки
             </th>
           </tr>
         </thead>
@@ -70,6 +81,18 @@ export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label, onTo
                     onToggle(target, isActive);
                   }}
                 />
+              </td>
+              <td className={styles.cell}>
+                <button
+                  className={styles.action}
+                  type="button"
+                  aria-label={`Код вставки для «${target.name}»`}
+                  onClick={() => {
+                    onShowSnippet(target);
+                  }}
+                >
+                  Показать код
+                </button>
               </td>
             </tr>
           ))}

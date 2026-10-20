@@ -6,6 +6,7 @@ import type { Target, TargetKind } from '../../schemas/target';
 import { Loader } from '../../components/loader/loader';
 import { Message } from '../../components/message/message';
 import { Switch } from '../../components/switch/switch';
+import { TargetSnippetDialog } from '../../components/target-snippet-dialog/target-snippet-dialog';
 import { TargetsTable } from '../../components/targets-table/targets-table';
 import { plural } from '../../utils/format';
 import { matchesNameQuery } from '../../utils/name-search';
@@ -46,8 +47,8 @@ interface TargetsPageProps {
 }
 
 /**
- * Раздел клиник или врачей: таблица с поиском по имени и переключателями
- * вывода в виджете.
+ * Раздел клиник или врачей: таблица с поиском по имени, переключателями
+ * вывода в виджете и кодом вставки для страницы каждой записи.
  *
  * Обе страницы выводит один компонент. Маршруты задают ему разные ключи:
  * иначе при переходе между разделами React сохранил бы строку поиска.
@@ -58,6 +59,11 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
   const update = useUpdateTargetMutation(kind);
   const [search, setSearch] = useState('');
   const [onlyHidden, setOnlyHidden] = useState(false);
+  const [snippetTargetId, setSnippetTargetId] = useState<string | null>(null);
+
+  // Запись берется из текущих данных, а не запоминается при открытии окна:
+  // так окно видит переключение показа, сделанное после открытия.
+  const snippetTarget = targets.data?.find((target) => target.id === snippetTargetId) ?? null;
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearch(event.target.value);
@@ -65,6 +71,14 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
 
   const handleToggle = (target: Target, isActive: boolean): void => {
     update.mutate({ id: target.id, isActive });
+  };
+
+  const handleShowSnippet = (target: Target): void => {
+    setSnippetTargetId(target.id);
+  };
+
+  const handleCloseSnippet = (): void => {
+    setSnippetTargetId(null);
   };
 
   /** Сообщение об отказе называет цель, чей переключатель вернулся в прежнее положение. */
@@ -129,7 +143,13 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
             {isSearching ? `По запросу «${search.trim()}» ничего не найдено.` : texts.noneHidden}
           </p>
         ) : (
-          <TargetsTable kind={kind} targets={found} label={texts.title} onToggle={handleToggle} />
+          <TargetsTable
+            kind={kind}
+            targets={found}
+            label={texts.title}
+            onToggle={handleToggle}
+            onShowSnippet={handleShowSnippet}
+          />
         )}
       </>
     );
@@ -151,6 +171,8 @@ export const TargetsPage: FC<TargetsPageProps> = ({ kind }) => {
         {targets.isError && <Message>{targets.error.message}</Message>}
         {targets.isSuccess && renderList(targets.data)}
       </section>
+
+      <TargetSnippetDialog target={snippetTarget} onClose={handleCloseSnippet} />
     </>
   );
 };

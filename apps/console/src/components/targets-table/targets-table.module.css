@@ -10,7 +10,7 @@
 /* Ширина не опускается ниже той, при которой столбцы читаются без переносов. */
 .table {
   width: 100%;
-  min-width: 560px;
+  min-width: 680px;
   font-size: var(--font-size-sm);
   border-collapse: collapse;
 }
@@ -44,4 +44,20 @@
 
 .muted {
   color: var(--color-text-muted);
+}
+
+.action {
+  color: var(--color-primary);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.action:hover {
+  text-decoration: none;
+}
+
+.action:focus-visible {
+  border-radius: var(--radius-md);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
