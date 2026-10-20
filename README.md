@@ -41,7 +41,7 @@ MyReviews ──► sync-worker ──► MongoDB ◄── console-api ◄─�
 
 ## Стек
 
-- **Среда:** Node 24, pnpm 11 (через corepack), TypeScript 6, Turborepo
+- **Среда:** Node 24, pnpm 12 (через corepack), TypeScript 6, Turborepo
 - **Службы:** NestJS 11, Mongoose 9, MongoDB 8
 - **Консоль:** React 19, React Router 8, TanStack Query 5, Zod 4, CSS Modules
 - **Виджет:** Lit 3 (`@lit/task`, `@lit/context`), стили в теневом DOM
