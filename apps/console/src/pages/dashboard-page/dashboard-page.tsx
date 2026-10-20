@@ -4,6 +4,7 @@ import { useSession } from '../../queries/auth';
 import { Header } from '../../components/header/header';
 import { ConnectionCard } from '../../components/connection-card/connection-card';
 import { WidgetCard } from '../../components/widget-card/widget-card';
+import { ReviewFilterCard } from '../../components/review-filter-card/review-filter-card';
 import { Loader } from '../../components/loader/loader';
 import styles from './dashboard-page.module.css';
 
@@ -25,6 +26,7 @@ export const DashboardPage: FC = () => {
       <main className={styles.content}>
         <ConnectionCard />
         <WidgetCard />
+        <ReviewFilterCard />
       </main>
     </>
   );
