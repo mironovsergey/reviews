@@ -23,7 +23,7 @@ export const CopyableCode: FC<CopyableCodeProps> = ({ code }) => {
       <code className={styles.code}>{code}</code>
 
       {clipboard.status === 'failed' && (
-        <div className={styles.notice}>
+        <div className={formStyles.notice}>
           <Message>Браузер не дал скопировать: выделите код вручную</Message>
         </div>
       )}
