@@ -546,14 +546,18 @@ export class ReviewsSearch extends LitElement {
           this.selectSuggestion(suggestion);
         }}"
       >
-        ${this.withAvatars
-          ? html`<reviews-avatar name="${suggestion.label}"></reviews-avatar>`
-          : nothing}
+        ${
+          this.withAvatars
+            ? html`<reviews-avatar name="${suggestion.label}"></reviews-avatar>`
+            : nothing
+        }
         <span class="search__option-body">
           <span class="search__label">${suggestion.label}</span>
-          ${suggestion.hint !== null
-            ? html`<span class="search__hint">${suggestion.hint}</span>`
-            : nothing}
+          ${
+            suggestion.hint !== null
+              ? html`<span class="search__hint">${suggestion.hint}</span>`
+              : nothing
+          }
         </span>
       </li>
     `;
@@ -607,18 +611,20 @@ export class ReviewsSearch extends LitElement {
           @input="${this.onInput}"
           @keydown="${this.onKeydown}"
         />
-        ${value.length > 0
-          ? html`
-              <button
-                class="search__clear"
-                type="button"
-                aria-label="Очистить поиск"
-                @click="${this.onClear}"
-              >
-                ${iconClose}
-              </button>
-            `
-          : nothing}
+        ${
+          value.length > 0
+            ? html`
+                <button
+                  class="search__clear"
+                  type="button"
+                  aria-label="Очистить поиск"
+                  @click="${this.onClear}"
+                >
+                  ${iconClose}
+                </button>
+              `
+            : nothing
+        }
       </div>
       ${this.renderSuggestions()}
     `;

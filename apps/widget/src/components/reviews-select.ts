@@ -325,9 +325,9 @@ export class ReviewsSelect extends LitElement {
           aria-haspopup="listbox"
           aria-controls="${LISTBOX_ID}"
           aria-expanded="${this.open ? 'true' : 'false'}"
-          aria-activedescendant="${this.open && this.activeIndex >= 0
-            ? optionId(this.activeIndex)
-            : nothing}"
+          aria-activedescendant="${
+            this.open && this.activeIndex >= 0 ? optionId(this.activeIndex) : nothing
+          }"
           @click="${this.onControlClick}"
           @keydown="${this.onKeydown}"
         >

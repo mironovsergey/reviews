@@ -178,24 +178,26 @@ export class ReviewsCard extends LitElement {
 
     return html`
       <div class="review-card__target">
-        ${isDoctor
-          ? html`<reviews-avatar .name="${review.target.name}"></reviews-avatar>`
-          : nothing}
+        ${
+          isDoctor ? html`<reviews-avatar .name="${review.target.name}"></reviews-avatar>` : nothing
+        }
         <div class="review-card__target-body">
           <span class="review-card__target-kind">
             ${isDoctor ? 'Отзыв о враче' : 'Отзыв о клинике'}
           </span>
-          ${isDoctor
-            ? html`
-                <button
-                  class="review-card__target-link"
-                  type="button"
-                  @click="${this.onTargetClick}"
-                >
-                  ${review.target.name}
-                </button>
-              `
-            : html`<span class="review-card__target-name">${review.target.name}</span>`}
+          ${
+            isDoctor
+              ? html`
+                  <button
+                    class="review-card__target-link"
+                    type="button"
+                    @click="${this.onTargetClick}"
+                  >
+                    ${review.target.name}
+                  </button>
+                `
+              : html`<span class="review-card__target-name">${review.target.name}</span>`
+          }
         </div>
       </div>
     `;
@@ -238,13 +240,15 @@ export class ReviewsCard extends LitElement {
         </div>
 
         ${this.renderText(review.text, collapsed)}
-        ${collapsible
-          ? html`
-              <button class="review-card__toggle" type="button" @click="${this.onToggle}">
-                ${this.expanded ? 'Свернуть' : 'Читать подробнее'}
-              </button>
-            `
-          : nothing}
+        ${
+          collapsible
+            ? html`
+                <button class="review-card__toggle" type="button" @click="${this.onToggle}">
+                  ${this.expanded ? 'Свернуть' : 'Читать подробнее'}
+                </button>
+              `
+            : nothing
+        }
         ${this.renderTarget(review)}
       </article>
     `;

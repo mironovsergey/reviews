@@ -149,23 +149,27 @@ export class ReviewsFeed extends LitElement {
           )}
         </ul>
 
-        ${this.feed.hasMore
-          ? html`
-              <div class="reviews__footer">
-                <button
-                  class="reviews__button"
-                  type="button"
-                  ?disabled="${this.feed.isLoadingMore}"
-                  @click="${this.onLoadMore}"
-                >
-                  ${this.feed.isLoadingMore ? 'Загрузка…' : 'Показать еще'}
-                </button>
-              </div>
-            `
-          : nothing}
-        ${this.feed.didLoadMoreFail
-          ? this.renderState('Не удалось загрузить продолжение. Попробуйте еще раз.')
-          : nothing}
+        ${
+          this.feed.hasMore
+            ? html`
+                <div class="reviews__footer">
+                  <button
+                    class="reviews__button"
+                    type="button"
+                    ?disabled="${this.feed.isLoadingMore}"
+                    @click="${this.onLoadMore}"
+                  >
+                    ${this.feed.isLoadingMore ? 'Загрузка…' : 'Показать еще'}
+                  </button>
+                </div>
+              `
+            : nothing
+        }
+        ${
+          this.feed.didLoadMoreFail
+            ? this.renderState('Не удалось загрузить продолжение. Попробуйте еще раз.')
+            : nothing
+        }
       </div>
     `;
   }
