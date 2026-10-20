@@ -1,0 +1,75 @@
+.card {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.hint {
+  margin-bottom: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.fields {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Системный вид списка отключен: Safari при нем не применяет отступы и
+ * скругление. Стрелка выведена фоном, ее цвет совпадает с
+ * --color-text-secondary: переменные внутри data URI не раскрываются.
+ */
+.select {
+  width: 100%;
+  max-width: 320px;
+  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m18 9.7-6 6-6-6 1.4-1.4 4.6 4.6 4.6-4.6z' fill='%2362615e'/%3E%3C/svg%3E")
+    no-repeat right var(--space-3) center / 20px;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.fieldHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.notice {
+  margin-top: var(--space-4);
+}
+
+/* Высота задана, чтобы появление подписи не сдвигало карточку. */
+.status {
+  min-height: 1.5em;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
