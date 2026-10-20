@@ -100,6 +100,15 @@ export class ReviewsFeed extends LitElement {
   @property({ attribute: false })
   targetId: string | null = null;
 
+  /**
+   * Цель задана кодом вставки, а не выбрана посетителем в фильтре.
+   *
+   * Признак влияет только на текст пустой ленты: на странице врача фильтра
+   * нет, и сообщение о неудачном отборе было бы непонятно.
+   */
+  @property({ type: Boolean })
+  pinned = false;
+
   private readonly feed = new FeedController(this, {
     client: () => this.client,
     targetId: () => this.targetId,
@@ -130,8 +139,10 @@ export class ReviewsFeed extends LitElement {
     const items = this.feed.items;
 
     if (items.length === 0) {
+      const isFiltered = this.targetId !== null && !this.pinned;
+
       return this.renderState(
-        this.targetId === null ? 'Отзывов пока нет' : 'По выбранному фильтру отзывов не нашлось',
+        isFiltered ? 'По выбранному фильтру отзывов не нашлось' : 'Отзывов пока нет',
       );
     }
 

@@ -146,7 +146,7 @@ export class ReviewsWidget extends LitElement {
     }
 
     return this.isPinned
-      ? html`<reviews-feed .targetId="${this.targetId}"></reviews-feed>`
+      ? html`<reviews-feed .targetId="${this.targetId}" pinned></reviews-feed>`
       : this.renderFilterable();
   }
 
