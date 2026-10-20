@@ -48,6 +48,10 @@
   outline: none;
 }
 
+.notice {
+  margin-bottom: var(--space-4);
+}
+
 .count {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
