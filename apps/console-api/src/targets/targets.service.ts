@@ -1,8 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Review, ReviewTarget, ReviewTargetKind } from '@reviews/database';
+import {
+  Review,
+  ReviewTarget,
+  ReviewTargetKind,
+  type ReviewTargetDocument,
+} from '@reviews/database';
 import type { TargetResponseDto } from './dto/target-response.dto';
+import type { UpdateTargetDto } from './dto/update-target.dto';
+
+/** Поля цели, из которых собирается строка таблицы. */
+const TARGET_FIELDS = 'kind name specialty isActive';
 
 /** Строка подсчета отзывов: идентификатор цели и число ее отзывов. */
 interface ReviewCountRow {
@@ -27,7 +36,7 @@ export class TargetsService {
   async list(workspaceId: Types.ObjectId, kind: ReviewTargetKind): Promise<TargetResponseDto[]> {
     const targets = await this.targetModel
       .find({ workspaceId, kind })
-      .select('kind name specialty isActive')
+      .select(TARGET_FIELDS)
       .sort({ name: 1 });
 
     const counts = await this.countReviews(
@@ -35,14 +44,36 @@ export class TargetsService {
       targets.map((target) => target._id),
     );
 
-    return targets.map((target) => ({
-      id: target._id.toString(),
-      kind: target.kind,
-      name: target.name,
-      specialty: target.specialty,
-      isActive: target.isActive,
-      reviewsCount: counts.get(target._id.toString()) ?? 0,
-    }));
+    return targets.map((target) => this.toResponse(target, counts));
+  }
+
+  /**
+   * Изменяет флаг вывода цели и возвращает ее строку таблицы.
+   *
+   * Кабинет входит в условие отбора: чужая цель неотличима от
+   * несуществующей, и ответ в обоих случаях одинаков.
+   *
+   * Синхронизация флаг не перезаписывает: прогон выставляет его только при
+   * создании записи. Виджет учитывает изменение с ближайшего обращения.
+   */
+  async update(
+    workspaceId: Types.ObjectId,
+    targetId: string,
+    dto: UpdateTargetDto,
+  ): Promise<TargetResponseDto> {
+    const target = await this.targetModel
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(targetId), workspaceId },
+        { $set: { isActive: dto.isActive } },
+        { returnDocument: 'after' },
+      )
+      .select(TARGET_FIELDS);
+
+    if (target === null) {
+      throw new NotFoundException('Клиника или врач не найдены');
+    }
+
+    return this.toResponse(target, await this.countReviews(workspaceId, [target._id]));
   }
 
   /**
@@ -69,5 +100,17 @@ export class TargetsService {
     ]);
 
     return new Map(rows.map((row) => [row._id.toString(), row.count]));
+  }
+
+  /** Поля перечислены явно: служебные поля хранилища в ответ не попадают. */
+  private toResponse(target: ReviewTargetDocument, counts: Map<string, number>): TargetResponseDto {
+    return {
+      id: target._id.toString(),
+      kind: target.kind,
+      name: target.name,
+      specialty: target.specialty,
+      isActive: target.isActive,
+      reviewsCount: counts.get(target._id.toString()) ?? 0,
+    };
   }
 }

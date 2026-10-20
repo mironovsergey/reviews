@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Aggregate, model, Query, Types, type PipelineStage } from 'mongoose';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -42,6 +43,12 @@ const countRow = (target: Record<string, unknown>, count: number): Record<string
 });
 
 /**
+ * Записи, которые возвращает запрос целей: перечень для find, одна запись
+ * или null для findOneAndUpdate.
+ */
+type StoredTargets = Record<string, unknown>[] | Record<string, unknown> | null;
+
+/**
  * Перехватывает выполнение запросов и собирает их для проверки.
  *
  * Запрос целей получает записи, восстановленные с учетом его проекции, как
@@ -49,7 +56,7 @@ const countRow = (target: Record<string, unknown>, count: number): Record<string
  * получает заданные строки.
  */
 const intercept = (
-  targets: Record<string, unknown>[],
+  stored: StoredTargets,
   counts: Record<string, unknown>[] = [],
 ): { queries: Query<unknown, unknown>[]; pipelines: PipelineStage[][] } => {
   const queries: Query<unknown, unknown>[] = [];
@@ -62,8 +69,13 @@ const intercept = (
     // тогда как hydrate отбрасывает его, когда проекция о нем не упоминает.
     const projection = this.projection();
     const selected = projection === null ? null : { _id: 1, ...projection };
+    const restore = (raw: Record<string, unknown>) => targetModel.hydrate(raw, selected);
 
-    return Promise.resolve(targets.map((raw) => targetModel.hydrate(raw, selected)));
+    if (Array.isArray(stored)) {
+      return Promise.resolve(stored.map(restore));
+    }
+
+    return Promise.resolve(stored === null ? null : restore(stored));
   });
 
   vi.spyOn(Aggregate.prototype, 'exec').mockImplementation(function (this: Aggregate<unknown>) {
@@ -186,5 +198,59 @@ describe('подсчет отзывов', () => {
 
     expect(await service.list(WORKSPACE_ID, ReviewTargetKind.Doctor)).toEqual([]);
     expect(pipelines).toHaveLength(0);
+  });
+});
+
+describe('изменение флага вывода', () => {
+  it('изменяет только цель своего кабинета', async () => {
+    const target = storedTarget();
+    const { queries } = intercept(target);
+
+    await service.update(WORKSPACE_ID, String(target._id), { isActive: false });
+
+    expect(queries[0]?.getFilter()).toEqual({ _id: target._id, workspaceId: WORKSPACE_ID });
+  });
+
+  it('записывает новое значение флага', async () => {
+    const target = storedTarget({ isActive: false });
+    const { queries } = intercept(target);
+
+    await service.update(WORKSPACE_ID, String(target._id), { isActive: false });
+
+    expect(queries[0]?.getUpdate()).toEqual({ $set: { isActive: false } });
+  });
+
+  it('возвращает строку таблицы из измененной записи', async () => {
+    const target = storedTarget({ isActive: false });
+    const { queries } = intercept(target, [countRow(target, 4)]);
+
+    expect(await service.update(WORKSPACE_ID, String(target._id), { isActive: false })).toEqual({
+      id: String(target._id),
+      kind: ReviewTargetKind.Doctor,
+      name: 'Иванова Мария',
+      specialty: 'Терапевт',
+      isActive: false,
+      reviewsCount: 4,
+    });
+    expect(queries[0]?.getOptions()).toMatchObject({ returnDocument: 'after' });
+  });
+
+  it('считает отзывы только измененной цели', async () => {
+    const target = storedTarget();
+    const { pipelines } = intercept(target);
+
+    await service.update(WORKSPACE_ID, String(target._id), { isActive: true });
+
+    expect(pipelines[0]?.[0]).toEqual({
+      $match: { workspaceId: WORKSPACE_ID, targetId: { $in: [target._id] } },
+    });
+  });
+
+  it('отказывает, если цель не найдена в кабинете', async () => {
+    intercept(null);
+
+    await expect(
+      service.update(WORKSPACE_ID, String(new Types.ObjectId()), { isActive: false }),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
