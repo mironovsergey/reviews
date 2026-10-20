@@ -1,0 +1,42 @@
+.scroller {
+  overflow-x: auto;
+}
+
+.scroller:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Ширина не опускается ниже той, при которой столбцы читаются без переносов. */
+.table {
+  width: 100%;
+  min-width: 560px;
+  font-size: var(--font-size-sm);
+  border-collapse: collapse;
+}
+
+.cell {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.cellHead {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.cellName {
+  font-weight: 600;
+}
+
+.cellNumeric {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
