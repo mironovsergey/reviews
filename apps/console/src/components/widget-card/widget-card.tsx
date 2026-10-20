@@ -63,7 +63,7 @@ export const WidgetCard: FC = () => {
     <section className={styles.card}>
       <h2 className={styles.title}>Код для сайта</h2>
       <p className={styles.hint}>
-        Вставьте этот код на страницу, где должны показываться отзывы. Ключ публичный — от чужого
+        Вставьте этот код на страницу, где должны показываться отзывы. Ключ публичный: от чужого
         использования его защищает список доменов ниже.
       </p>
 
@@ -71,7 +71,7 @@ export const WidgetCard: FC = () => {
 
       {clipboard.status === 'failed' && (
         <div className={styles.notice}>
-          <Message>Браузер не дал скопировать — выделите код вручную</Message>
+          <Message>Браузер не дал скопировать: выделите код вручную</Message>
         </div>
       )}
 
