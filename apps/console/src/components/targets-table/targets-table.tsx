@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import type { Target, TargetKind } from '../../schemas/target';
+import { Switch } from '../switch/switch';
 import styles from './targets-table.module.css';
 
 interface TargetsTableProps {
@@ -7,6 +8,8 @@ interface TargetsTableProps {
   targets: Target[];
   /** Доступное имя таблицы для программ чтения с экрана. */
   label: string;
+  /** Включение или отключение вывода цели в виджете. */
+  onToggle: (target: Target, isActive: boolean) => void;
 }
 
 /**
@@ -16,7 +19,7 @@ interface TargetsTableProps {
  * таблица прокручивается по горизонтали внутри своей области. Область
  * получает фокус, иначе прокрутить ее с клавиатуры нельзя.
  */
-export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label }) => {
+export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label, onToggle }) => {
   const isDoctor = kind === 'doctor';
 
   return (
@@ -43,7 +46,14 @@ export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label }) =>
         <tbody>
           {targets.map((target) => (
             <tr key={target.id}>
-              <th className={`${styles.cell} ${styles.cellName}`} scope="row">
+              <th
+                className={
+                  target.isActive
+                    ? `${styles.cell} ${styles.cellName}`
+                    : `${styles.cell} ${styles.cellName} ${styles.cellMuted}`
+                }
+                scope="row"
+              >
                 {target.name}
               </th>
               {isDoctor && (
@@ -53,11 +63,13 @@ export const TargetsTable: FC<TargetsTableProps> = ({ kind, targets, label }) =>
               )}
               <td className={`${styles.cell} ${styles.cellNumeric}`}>{target.reviewsCount}</td>
               <td className={styles.cell}>
-                {target.isActive ? (
-                  'Показывается'
-                ) : (
-                  <span className={styles.muted}>Не показывается</span>
-                )}
+                <Switch
+                  checked={target.isActive}
+                  label={`Показывать «${target.name}» в виджете`}
+                  onChange={(isActive) => {
+                    onToggle(target, isActive);
+                  }}
+                />
               </td>
             </tr>
           ))}

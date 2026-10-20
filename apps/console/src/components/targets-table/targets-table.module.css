@@ -32,6 +32,11 @@
   font-weight: 600;
 }
 
+/* Имя цели, снятой с вывода: строка заметно отличается от выводимых. */
+.cellMuted {
+  color: var(--color-text-muted);
+}
+
 .cellNumeric {
   font-variant-numeric: tabular-nums;
   text-align: right;
