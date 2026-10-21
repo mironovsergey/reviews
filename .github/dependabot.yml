@@ -1,0 +1,29 @@
+# Обновления зависимостей через Dependabot.
+#
+# Обновляются только действия GitHub в workflow выкладки. Они закреплены по
+# SHA коммитов, и Dependabot заменяет SHA вместе с версией в комментарии на
+# той же строке. Зависимости npm сюда не входят: Dependabot поддерживает pnpm
+# только до версии 10, а проект собирается на pnpm 12.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    # Для действий указывается корень: каталог .github/workflows Dependabot
+    # просматривает сам.
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Moscow
+    # Новая версия предлагается через неделю после выхода: за это время
+    # неудачный или подмененный выпуск обычно успевают отозвать.
+    cooldown:
+      default-days: 7
+    # Действий немного, и проверять их обновления удобнее одним PR.
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: ci
