@@ -11,8 +11,13 @@
 #   BACKUP_DIR       каталог архивов, по умолчанию ~/backups/reviews
 #   BACKUP_KEEP      сколько последних архивов хранить, по умолчанию 14
 #   MONGO_CONTAINER  контейнер базы, по умолчанию reviews-mongo
+#   BACKUP_REMOTE    путь rclone для копии вне сервера; пока он не задан,
+#                    архив остается только на сервере. Остальные настройки
+#                    копии описаны в upload-backup.sh.
 
 set -euo pipefail
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 # cron запускает задания с урезанным PATH, в котором может не оказаться docker.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -110,4 +115,12 @@ excess=$((${#archives[@]} - BACKUP_KEEP))
 if ((excess > 0)); then
   rm -f -- "${archives[@]:0:excess}"
   log "Удалено старых архивов: $excess"
+fi
+
+# Копия вне сервера делается последним шагом, пока еще удерживается
+# блокировка. Ее сбой не отменяет локальный архив: он уже проверен и
+# сохранен, а выгрузку можно повторить отдельно.
+if [[ -n "${BACKUP_REMOTE:-}" ]]; then
+  "$SCRIPT_DIR/upload-backup.sh" "$archive" ||
+    fail "локальный архив сохранен, но копия вне сервера не создана. Повторить: BACKUP_REMOTE=$BACKUP_REMOTE $SCRIPT_DIR/upload-backup.sh $archive"
 fi
