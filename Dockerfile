@@ -113,3 +113,11 @@ RUN pnpm --filter @reviews/widget build
 
 FROM scratch AS widget-dist
 COPY --from=widget-build /app/apps/widget/dist /
+
+# Статика консоли и виджета одним образом для автоматической выкладки: она
+# забирает статику из реестра вместе с образами служб, поэтому версии всегда
+# совпадают. Скрипт выкладки только копирует файлы из образа и никогда его не
+# запускает.
+FROM scratch AS static
+COPY --from=console-build /app/apps/console/dist /console
+COPY --from=widget-build /app/apps/widget/dist /widget
