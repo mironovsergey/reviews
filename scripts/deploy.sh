@@ -29,7 +29,7 @@
 #   DEPLOY_REGISTRY_PREFIX  начало имен образов, по умолчанию
 #                           ghcr.io/mironovsergey/reviews
 #   DEPLOY_CONSOLE_URL      адрес консоли для проверки, по умолчанию
-#                           https://console.reviews.stackra.ru
+#                           https://console.clinicstars.ru
 
 set -euo pipefail
 
@@ -41,7 +41,7 @@ export LC_ALL=C
 APP_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 STATE_DIR="${DEPLOY_STATE_DIR:-$HOME/.local/state/reviews-deploy}"
 REGISTRY_PREFIX="${DEPLOY_REGISTRY_PREFIX:-ghcr.io/mironovsergey/reviews}"
-CONSOLE_URL="${DEPLOY_CONSOLE_URL:-https://console.reviews.stackra.ru}"
+CONSOLE_URL="${DEPLOY_CONSOLE_URL:-https://console.clinicstars.ru}"
 
 TAG_PATTERN='^v[0-9]+\.[0-9]+\.[0-9]+$'
 COMPOSE_FILE="$APP_DIR/docker-compose.prod.yml"

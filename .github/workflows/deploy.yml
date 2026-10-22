@@ -106,8 +106,8 @@ jobs:
             org.opencontainers.image.revision=${{ env.REVISION }}
             org.opencontainers.image.version=${{ env.TAG }}
           build-args: |
-            VITE_CONSOLE_API_URL=${{ vars.VITE_CONSOLE_API_URL || 'https://api.console.reviews.stackra.ru' }}
-            VITE_WIDGET_API_URL=${{ vars.VITE_WIDGET_API_URL || 'https://api.widget.reviews.stackra.ru' }}
+            VITE_CONSOLE_API_URL=${{ vars.VITE_CONSOLE_API_URL || 'https://api.console.clinicstars.ru' }}
+            VITE_WIDGET_API_URL=${{ vars.VITE_WIDGET_API_URL || 'https://api.widget.clinicstars.ru' }}
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,mode=max,scope=${{ matrix.target }}
 
@@ -119,7 +119,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: production
-      url: https://console.reviews.stackra.ru
+      url: https://console.clinicstars.ru
     steps:
       - name: Подготовить ключ SSH
         env:
