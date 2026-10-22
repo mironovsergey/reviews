@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
   if (mode === 'production' && !loadEnv(mode, WORKSPACE_ROOT, 'VITE_').VITE_CONSOLE_API_URL) {
     throw new Error(
       'Не задан VITE_CONSOLE_API_URL - адрес API вшивается в бандл при сборке.\n' +
-        'Пример: VITE_CONSOLE_API_URL=https://api.console.reviews.stackra.ru pnpm build',
+        'Пример: VITE_CONSOLE_API_URL=https://api.console.clinicstars.ru pnpm build',
     );
   }
 

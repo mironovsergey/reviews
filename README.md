@@ -215,11 +215,11 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ```bash
 docker build --target console-dist \
-  --build-arg VITE_CONSOLE_API_URL=https://api.console.reviews.stackra.ru \
+  --build-arg VITE_CONSOLE_API_URL=https://api.console.clinicstars.ru \
   --output type=local,dest=/home/deploy/apps/reviews/console .
 
 docker build --target widget-dist \
-  --build-arg VITE_WIDGET_API_URL=https://api.widget.reviews.stackra.ru \
+  --build-arg VITE_WIDGET_API_URL=https://api.widget.clinicstars.ru \
   --output type=local,dest=/home/deploy/apps/reviews/widget .
 ```
 
@@ -264,12 +264,12 @@ location / {
 
 ### Адреса
 
-| Служба         | Поддомен                         |
-| -------------- | -------------------------------- |
-| Консоль        | `console.reviews.stackra.ru`     |
-| API консоли    | `api.console.reviews.stackra.ru` |
-| Скрипт виджета | `widget.reviews.stackra.ru`      |
-| API виджета    | `api.widget.reviews.stackra.ru`  |
+| Служба         | Поддомен                     |
+| -------------- | ---------------------------- |
+| Консоль        | `console.clinicstars.ru`     |
+| API консоли    | `api.console.clinicstars.ru` |
+| Скрипт виджета | `widget.clinicstars.ru`      |
+| API виджета    | `api.widget.clinicstars.ru`  |
 
 `WIDGET_SCRIPT_URL` должен указывать на поддомен скрипта виджета. Это
 единственное значение, которое расходится по сайтам клиентов: оно попадает в

@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
   if (mode === 'production' && !loadEnv(mode, WORKSPACE_ROOT, 'VITE_').VITE_WIDGET_API_URL) {
     throw new Error(
       'Не задан VITE_WIDGET_API_URL - адрес API вшивается в бандл при сборке.\n' +
-        'Пример: VITE_WIDGET_API_URL=https://api.widget.reviews.stackra.ru pnpm build',
+        'Пример: VITE_WIDGET_API_URL=https://api.widget.clinicstars.ru pnpm build',
     );
   }
 
