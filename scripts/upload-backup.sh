@@ -91,7 +91,7 @@ rclone copyto "${RCLONE_FLAGS[@]}" -- "$encrypted" "$BACKUP_REMOTE/$name" ||
 # сверяется по списку объектов: так проверяется, что копия действительно
 # видна в хранилище под нужным именем.
 local_size=$(wc -c <"$encrypted" | tr -d ' ')
-remote_size=$(rclone lsf "${RCLONE_FLAGS[@]}" --format s --include "/$name" -- "$BACKUP_REMOTE") ||
+remote_size=$(rclone lsf "${RCLONE_FLAGS[@]}" --files-only --format s --include "/$name" -- "$BACKUP_REMOTE") ||
   fail 'не удалось получить список объектов хранилища'
 
 [[ "$remote_size" == "$local_size" ]] ||
@@ -101,8 +101,10 @@ log "Копия сохранена в хранилище: $BACKUP_REMOTE/$name"
 
 # Старые копии удаляются только после успешной выгрузки новой, поэтому
 # серия сбоев не оставляет хранилище пустым.
+# lsf без --files-only выводит и каталоги вроде config/: они не являются
+# старыми архивами и не должны попадать в счетчик ротации.
 expired=$(
-  rclone lsf "${RCLONE_FLAGS[@]}" --min-age "${BACKUP_REMOTE_DAYS}d" \
+  rclone lsf "${RCLONE_FLAGS[@]}" --files-only --min-age "${BACKUP_REMOTE_DAYS}d" \
     --include "$REMOTE_PATTERN" -- "$BACKUP_REMOTE"
 ) || fail 'не удалось получить список старых копий'
 

@@ -102,6 +102,11 @@ elif tool == "rclone":
         else:
             for file in files:
                 print(file.name)
+            # lsf also lists directory prefixes allowed for traversal. Age
+            # filters apply to files, so even a fresh config/ can appear.
+            if command == "lsf" and "--files-only" not in args and not pattern.startswith("/"):
+                for folder_entry in sorted(p for p in folder.glob("*") if p.is_dir()):
+                    print(folder_entry.name + "/")
 else:
     raise AssertionError(tool)
 '''
@@ -230,6 +235,16 @@ class BackupTests(unittest.TestCase):
                 self.assertEqual(marker.read_text(), "previous success")
                 self.assertEqual(self.calls("rclone"), [])
                 self.assertEqual(list(self.backups.glob("*.partial")), [])
+
+    def test_directory_prefix_is_not_counted_as_expired_backup(self):
+        manual_config = self.remote / "config" / "reviews-env-2001-01-01-000000.env.age"
+        self.seed_old(manual_config)
+        result = self.run_script()
+        self.assert_success(result)
+        self.assertNotIn("Удалено копий", result.stdout)
+        self.assertFalse(any(args[0] == "delete" for args in self.calls("rclone")))
+        self.assertTrue(manual_config.exists())
+        self.assertTrue((self.state / "last-success").is_file())
 
     def test_upload_failures_preserve_local_copy_and_last_success(self):
         for fault in ("BACKUP_TEST_FAIL_AGE", "BACKUP_TEST_FAIL_UPLOAD", "BACKUP_TEST_BAD_SIZE"):
