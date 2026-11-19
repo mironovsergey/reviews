@@ -63,6 +63,10 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm test
+      - name: Проверить резервное копирование
+        run: |
+          bash -n scripts/*.sh
+          python3 -B scripts/tests/test_backups.py
 
   build:
     name: Сборка ${{ matrix.target }}

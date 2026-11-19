@@ -394,7 +394,22 @@ git push origin v1.2.0
 виджет на сайтах клиентов прервется на несколько секунд, пока
 перезапускается `widget-api`.
 
-## Резервное копирование базы
+## Резервное копирование
+
+По расписанию сохраняется только база MongoDB. Дампы находятся в
+`~/backups/reviews/reviews-*.archive.gz`: 14 последних архивов на сервере
+и зашифрованные копии за 60 дней в Yandex Object Storage. Локальные архивы
+содержат персональные данные и создаются с правами `600`.
+
+Файл `.env`, nginx и Certbot копируются вручную после изменения настроек.
+Существующие ручные копии в каталоге `reviews/config` бакета автоматическая
+ротация базы не удаляет.
+
+Метка `~/.local/state/reviews-backup/last-success` обновляется только после
+успешной выгрузки дампа вне сервера и ротации в S3. Локальная копия перед
+выкладкой эту метку не обновляет.
+
+### Дамп базы
 
 Отзывы, клиники и врачей можно заново загрузить из MyReviews, но восстановимо
 не все содержимое базы. Ключ кабинета прописан в коде вставки на сайте
@@ -409,7 +424,8 @@ git push origin v1.2.0
 
 - целостность сжатого потока проверяет `gzip -t`: обрезанный или поврежденный
   архив отвергается;
-- пробное восстановление подтверждает, что в архиве есть кабинеты и цели;
+- `mongorestore --dryRun` проверяет заголовок и наличие кабинетов и целей;
+  это не заменяет настоящее восстановление в отдельную тестовую MongoDB;
 - хранятся 14 последних архивов, и неудачный запуск старые не удаляет;
 - второй запуск, пока идет первый, завершается сразу.
 
@@ -421,10 +437,23 @@ git push origin v1.2.0
 | `BACKUP_REMOTE`         | не задана                                     | Путь rclone для копии вне сервера       |
 | `BACKUP_AGE_RECIPIENTS` | `~/.config/reviews-backup/age-recipients.txt` | Открытые ключи age для шифрования копии |
 | `BACKUP_REMOTE_DAYS`    | `60`                                          | Сколько дней хранить копии вне сервера  |
+| `BACKUP_STATE_DIR`      | `~/.local/state/reviews-backup`               | Метка успешной выгрузки вне сервера     |
+
+Дамп снимается с работающей standalone MongoDB без `--oplog`. При
+одновременной записи он не гарантирует общего момента времени для всех
+коллекций. Расписание выбрано после ночной синхронизации; ручные изменения
+и синхронизацию из консоли следует выполнять вне окна копирования.
 
 ### Выгрузка по расписанию
 
-Задание ставится один раз, в crontab пользователя `deploy`:
+После настройки S3 и age сначала проверить запуск с копией вне сервера:
+
+```bash
+BACKUP_REMOTE=yandex:stackra-bucket/reviews ./scripts/backup-db.sh
+cat ~/.local/state/reviews-backup/last-success
+```
+
+Затем поставить одно задание в crontab пользователя `deploy`:
 
 ```bash
 install -d -m 700 ~/backups/reviews
@@ -432,13 +461,27 @@ crontab -e
 ```
 
 ```cron
-# Выгрузка базы отзывов в 04:00, через час после ночной синхронизации.
-0 4 * * * /home/deploy/apps/reviews/scripts/backup-db.sh >> /home/deploy/backups/reviews/backup.log 2>&1
+# Дамп базы в 04:00, через час после ночной синхронизации.
+0 4 * * * BACKUP_REMOTE=yandex:stackra-bucket/reviews /home/deploy/apps/reviews/scripts/backup-db.sh >> /home/deploy/backups/reviews/backup.log 2>&1
 ```
 
 Время отсчитывается по часовому поясу сервера (Europe/Moscow). Каталог
 создается заранее: cron открывает журнал до запуска скрипта, и без каталога
-задание не выполнится. Итог каждого прогона дописывается в `backup.log`.
+задание не выполнится. Старое задание без `BACKUP_REMOTE` нужно заменить
+указанным выше, чтобы не создавать два ежедневных дампа. Итог каждого
+прогона дописывается в `backup.log`. Дополнительные права sudo не требуются.
+
+Проверка после первого запуска по расписанию:
+
+```bash
+cat ~/.local/state/reviews-backup/last-success
+tail -n 50 ~/backups/reviews/backup.log
+rclone lsf yandex:stackra-bucket/reviews --recursive
+```
+
+Метка показывает время последней успешной выгрузки вне сервера, а не попытки.
+При ошибке ее прежнее значение сохраняется. Автоматические уведомления о
+сбоях отдельно не настроены, поэтому свежесть метки и журнал нужно проверять.
 
 Перед выкладкой скрипт запускается вручную из каталога сервиса:
 
@@ -449,20 +492,24 @@ crontab -e
 ### Копия вне сервера
 
 Если задана переменная `BACKUP_REMOTE`, каждый проверенный архив
-дополнительно уходит в объектное хранилище S3 у Beget. Выгрузку выполняет
+дополнительно уходит в объектное хранилище S3 вне провайдера VPS, сейчас —
+Yandex Object Storage. Выгрузку выполняет
 [`scripts/upload-backup.sh`](scripts/upload-backup.sh):
 
 - архив шифруется утилитой `age` открытым ключом, а закрытый ключ хранится
   только вне сервера, поэтому ключи хранилища не открывают доступа к данным;
 - после выгрузки размер копии сверяется со списком объектов хранилища;
-- копии старше 60 дней удаляются, но только после успешной выгрузки новой;
+- дампы старше 60 дней удаляются только после успешной выгрузки нового;
+  ротация затрагивает только имена `reviews-*.archive.gz.age`;
 - сбой выгрузки не отменяет локальный архив, а в журнал записывается команда
   для повтора.
 
 Настройка выполняется один раз.
 
-1. В панели Beget создать приватный бакет и скопировать со страницы бакета
-   его имя, ключ доступа и секретный ключ.
+1. Создать приватный бакет стандартного класса в Yandex Object Storage.
+   Создать сервисный аккаунт в том же каталоге, выдать ему `READ` и `WRITE`
+   через ACL этого бакета и создать статический ключ доступа. Сохранить
+   идентификатор и секретный ключ в менеджере паролей.
 2. Установить утилиты на сервере:
 
    ```bash
@@ -474,81 +521,109 @@ crontab -e
 
    ```bash
    install -d -m 700 ~/.config/rclone
-   install -m 600 /dev/null ~/.config/rclone/rclone.conf
+   umask 077
    nano ~/.config/rclone/rclone.conf
+   chmod 600 ~/.config/rclone/rclone.conf
    ```
 
    ```ini
-   [beget]
+   [yandex]
    type = s3
-   provider = Ceph
-   endpoint = https://s3.ru1.storage.beget.cloud
+   provider = Other
+   env_auth = false
    access_key_id = <ключ доступа>
    secret_access_key = <секретный ключ>
-   acl = private
+   region = ru-central1
+   endpoint = https://storage.yandexcloud.net
    no_check_bucket = true
    ```
 
-   Строка `no_check_bucket` обязательна: Beget не дает создавать бакеты через
-   API, а без нее rclone пытается создать бакет перед записью. Проверка:
-   команда `rclone lsf beget:<бакет>` завершается без ошибки.
+   `no_check_bucket` позволяет обойтись без прав на создание бакетов.
+   Проверка: команда `rclone lsf yandex:stackra-bucket` завершается без ошибки.
 
 4. Создать пару ключей age на своем компьютере, а не на сервере (на macOS
    утилита ставится через `brew install age`):
 
    ```bash
-   age-keygen -o reviews-backup.key
+   mkdir -p ~/.config/clinicstars
+   chmod 700 ~/.config/clinicstars
+   umask 077
+   age-keygen -o ~/.config/clinicstars/reviews-backup.agekey
+   age-keygen -y ~/.config/clinicstars/reviews-backup.agekey > ~/.config/clinicstars/age-recipients.txt
    ```
 
-   Файл с закрытым ключом сохранить в менеджере паролей рядом с `.env` и
-   удалить. Открытый ключ, строку `age1…` из вывода команды, записать на
-   сервере:
+   Дополнительную копию закрытого ключа сохранить в менеджере паролей.
+   На сервер передать только открытый ключ, строку `age1…`. Из терминала Mac:
 
    ```bash
-   install -d -m 700 ~/.config/reviews-backup
-   echo 'age1…' > ~/.config/reviews-backup/age-recipients.txt
+   ssh deploy@153.80.40.79 'install -d -m 700 "$HOME/.config/reviews-backup"'
+   scp ~/.config/clinicstars/age-recipients.txt deploy@153.80.40.79:.config/reviews-backup/age-recipients.txt
    ```
 
 5. Проверить выгрузку вручную:
 
    ```bash
-   BACKUP_REMOTE=beget:<бакет>/reviews ./scripts/backup-db.sh
+   BACKUP_REMOTE=yandex:stackra-bucket/reviews ./scripts/backup-db.sh
    ```
 
-6. Добавить переменную в начало crontab (`crontab -e`). cron передает ее
-   всем заданиям, записанным ниже:
-
-   ```cron
-   BACKUP_REMOTE=beget:<бакет>/reviews
-   ```
+6. Настроить ежедневный запуск по инструкции выше.
+   `BACKUP_REMOTE` передается в окружении команды; файл `.env` скрипты
+   не загружают и не копируют. Первые ручные файлы `reviews-env-*.env.age` и
+   `reviews-nginx-*.tar.gz.age` автоматическая ротация не удаляет.
 
 ### Восстановление
 
-На время восстановления обработчик синхронизации останавливается, чтобы не
-писать в базу одновременно с `mongorestore`. Ключ `--drop` заменяет коллекции
+На время восстановления останавливаются консольный API и обработчик
+синхронизации, чтобы не писать в базу одновременно с `mongorestore`.
+Ключ `--drop` заменяет коллекции
 содержимым архива, поэтому изменения, сделанные после выгрузки, теряются.
 
 ```bash
-docker compose -f docker-compose.prod.yml stop sync-worker
-docker exec -i reviews-mongo sh -c 'mongorestore -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --drop' < ~/backups/reviews/reviews-ГГГГ-ММ-ДД-ЧЧММСС.archive.gz
-docker compose -f docker-compose.prod.yml start sync-worker
+docker compose -f docker-compose.prod.yml stop console-api sync-worker
+docker exec -i reviews-mongo sh -c 'mongorestore -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --drop --stopOnError' < ~/backups/reviews/reviews-ГГГГ-ММ-ДД-ЧЧММСС.archive.gz
+# Только после успешного восстановления:
+docker compose -f docker-compose.prod.yml start console-api sync-worker
 ```
 
 Если сервер потерян, архив берется из хранилища. Закрытый ключ age на сервер
 не копируется: копия скачивается через файловый менеджер бакета в панели
-Beget или командой `rclone copyto`, расшифровывается на своем компьютере, и
+Yandex Cloud или командой `rclone copyto`, расшифровывается на своем компьютере, и
 на сервер передается уже готовый архив.
 
 ```bash
-age -d -i reviews-backup.key -o reviews.archive.gz reviews-ГГГГ-ММ-ДД-ЧЧММСС.archive.gz.age
+umask 077
+age -d -i ~/.config/clinicstars/reviews-backup.agekey -o reviews.archive.gz reviews-ГГГГ-ММ-ДД-ЧЧММСС.archive.gz.age
 gzip -t reviews.archive.gz
 ```
 
-Локальные архивы защищают от ошибок в данных и неудачной выкладки, копия в
-хранилище защищает от потери сервера. Файл `.env` ни в одну из них не входит
-и хранится отдельно, например в менеджере паролей, вместе с закрытым ключом
-age: без `TOKEN_ENCRYPTION_KEY` сохраненный токен MyReviews не расшифровать,
-и аккаунт придется привязать заново.
+Ручные копии `.env` и nginx из `reviews/config` расшифровываются тем же
+ключом на своем компьютере. Например, для ранее сохраненного архива nginx:
+
+```bash
+umask 077
+age -d -i ~/.config/clinicstars/reviews-backup.agekey -o nginx-certbot.tar.gz reviews-nginx-ГГГГ-ММ-ДД-ЧЧММСС.tar.gz.age
+tar -tzf nginx-certbot.tar.gz
+```
+
+Ручные копии настроек нужно обновлять после изменений. При восстановлении
+`.env` возвращается в каталог проекта с правами `600`, а системные настройки —
+в соответствующие каталоги после проверки путей, пользователей и версий
+пакетов. Архив nginx включает все проекты сервера, поэтому файлы для
+восстановления одного проекта выбираются отдельно. Без сохраненного
+`TOKEN_ENCRYPTION_KEY` токен MyReviews из базы не расшифровать.
+
+Локальные архивы защищают от ошибок в данных и неудачной выкладки, S3 у
+другого провайдера — от потери VPS. Закрытый ключ age хранится отдельно от
+сервера и бакета. Резервные копии всего бокса у Sprintbox дополняют эти
+архивы. Полную настройку чистого сервера нужно проверять отдельно; она
+будет автоматизирована через Ansible.
+
+Проверки скриптов без сети и боевых данных запускаются командой
+`python3 -B scripts/tests/test_backups.py` и включены в workflow выкладки.
+Они подставляют Docker, age и S3, проверяя целостность архивов,
+права, ротацию, обработку ошибок и метку успеха. При установленном age
+дополнительно проверяется настоящее шифрование и расшифровка. Полное
+восстановление MongoDB дополнительно проверяют на копии из бакета.
 
 ## Как работает синхронизация
 

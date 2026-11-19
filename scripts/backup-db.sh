@@ -3,7 +3,7 @@
 # Выгрузка базы отзывов в сжатый архив с проверкой и ротацией.
 #
 # Запускается на сервере по расписанию и вручную перед выкладкой (см. README,
-# раздел «Резервное копирование базы»). Учетные данные базы скрипту не нужны:
+# раздел «Резервное копирование»). Учетные данные базы скрипту не нужны:
 # mongodump выполняется внутри контейнера и берет их из его же переменных
 # окружения.
 #
@@ -14,6 +14,8 @@
 #   BACKUP_REMOTE    путь rclone для копии вне сервера; пока он не задан,
 #                    архив остается только на сервере. Остальные настройки
 #                    копии описаны в upload-backup.sh.
+#   BACKUP_STATE_DIR каталог отметки последнего успешного запуска с копией
+#                    вне сервера, по умолчанию ~/.local/state/reviews-backup
 
 set -euo pipefail
 
@@ -28,6 +30,7 @@ export LC_ALL=C
 BACKUP_DIR="${BACKUP_DIR:-$HOME/backups/reviews}"
 BACKUP_KEEP="${BACKUP_KEEP:-14}"
 MONGO_CONTAINER="${MONGO_CONTAINER:-reviews-mongo}"
+STATE_DIR="${BACKUP_STATE_DIR:-$HOME/.local/state/reviews-backup}"
 DB_NAME='reviews'
 
 # Коллекции, без которых архив бесполезен. Кабинет хранит ключ виджета из кода
@@ -63,10 +66,17 @@ fi
 
 archive="$BACKUP_DIR/$DB_NAME-$(date '+%F-%H%M%S').archive.gz"
 partial="$archive.partial"
+success_partial=''
 
 # Недописанный архив удаляется при любом завершении: в каталоге остаются только
 # проверенные архивы.
-trap 'rm -f -- "$partial"' EXIT
+cleanup() {
+  rm -f -- "$partial"
+  if [[ -n "$success_partial" ]]; then
+    rm -f -- "$success_partial"
+  fi
+}
+trap cleanup EXIT
 
 # Команды внутри контейнера заключены в одинарные кавычки: переменные с
 # учетными данными раскрывает оболочка контейнера, и на хосте их значения не
@@ -123,4 +133,13 @@ fi
 if [[ -n "${BACKUP_REMOTE:-}" ]]; then
   "$SCRIPT_DIR/upload-backup.sh" "$archive" ||
     fail "локальный архив сохранен, но копия вне сервера не создана. Повторить: BACKUP_REMOTE=$BACKUP_REMOTE $SCRIPT_DIR/upload-backup.sh $archive"
+
+  # Локальная выгрузка перед выкладкой эту отметку не обновляет. При сбое
+  # шифрования, загрузки или ротации в S3 остается время прежнего успеха.
+  mkdir -p -- "$STATE_DIR"
+  chmod 700 "$STATE_DIR"
+  success_partial=$(mktemp "$STATE_DIR/.last-success.XXXXXXXX")
+  date '+%Y-%m-%dT%H:%M:%S%z' >"$success_partial"
+  mv -- "$success_partial" "$STATE_DIR/last-success"
+  log 'Копирование базы с выгрузкой вне сервера успешно завершено'
 fi
